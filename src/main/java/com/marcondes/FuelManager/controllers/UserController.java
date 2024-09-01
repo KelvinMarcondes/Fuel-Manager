@@ -22,7 +22,7 @@ public class UserController {
     @PostMapping("/new-user")
     public ResponseEntity<?> createUser(@RequestBody CreateUserDto createUserDto) {
 
-         if (userService.findByEmail(createUserDto.getEmail()) != null){
+         if (userService.findUserByEmail(createUserDto.getEmail()) != null){
              return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email já existente.");
          }
          User user = mapper.map(createUserDto, User.class);
@@ -33,7 +33,7 @@ public class UserController {
     @GetMapping("/find-account")
     public ResponseEntity<?> findByEmail(@RequestBody UserDto userDto){
 
-        User userDB = userService.findByEmail(userDto.getEmail());
+        User userDB = userService.findUserByEmail(userDto.getEmail());
         if (userDB == null) {
             return ResponseEntity.badRequest().body("Usuário não existe.");
         }
