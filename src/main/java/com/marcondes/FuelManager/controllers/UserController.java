@@ -20,24 +20,24 @@ public class UserController {
     ModelMapper mapper = new ModelMapper();
 
     @PostMapping("/new-user")
-    public ResponseEntity<?> createUser(@RequestBody CreateUserDto createUserDto) {
+    public ResponseEntity<String> createUser(@RequestBody CreateUserDto createUserDto) {
 
          if (userService.findUserByEmail(createUserDto.getEmail()) != null){
              return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email já existente.");
          }
+
          User user = mapper.map(createUserDto, User.class);
          userService.createUser(user);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body("Usuário criado com sucesso.");
     }
 
     @GetMapping("/find-account")
-    public ResponseEntity<?> findByEmail(@RequestBody UserDto userDto){
+    public ResponseEntity<UserDto> findByEmail(@RequestBody UserDto userDto){
 
         User userDB = userService.findUserByEmail(userDto.getEmail());
         if (userDB == null) {
-            return ResponseEntity.badRequest().body("Usuário não existe.");
+            return ResponseEntity.badRequest().build();
         }
-
         return ResponseEntity.ok().body(mapper.map(userDB, UserDto.class));
     }
 
