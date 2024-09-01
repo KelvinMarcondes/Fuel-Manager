@@ -10,3 +10,4 @@ services:
       - MYSQL_PASSWORD=123
       - MYSQL_DATABASE=fuelmanager
       - MYSQL_ROOT_PASSWORD=123
+      -
