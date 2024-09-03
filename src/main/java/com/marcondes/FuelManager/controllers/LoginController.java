@@ -16,9 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.stream.Collectors;
 
-@CrossOrigin("*")
-@RestController()
-@RequestMapping("/login")
+@RestController
 public class LoginController {
 
     private final JwtEncoder jwtEncoder;
@@ -36,7 +34,7 @@ public class LoginController {
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
-    @PostMapping()
+    @PostMapping("/login")
     private ResponseEntity<LoginResponse> login (@RequestBody LoginRequest loginRequest) {
 
         var user = userRepository.findUserByEmail(loginRequest.email());
