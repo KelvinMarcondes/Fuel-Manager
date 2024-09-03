@@ -9,7 +9,6 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -50,12 +49,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
 
         http
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, "/login").permitAll()
-                        .anyRequest().authenticated()
-                )
+//                .authorizeHttpRequests(authorize -> authorize
+//                        .requestMatchers(HttpMethod.POST, "/login").permitAll()
+//                        .anyRequest().authenticated()
+//                )
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(AbstractHttpConfigurer::disable)
                 .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exceptionHandling ->
@@ -66,20 +64,23 @@ public class SecurityConfig {
     }
 
 
-
     @Bean
-    public WebMvcConfigurer corsConfigurer() {
+    public WebMvcConfigurer corsConfig() {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:4200") // Origem do Angular
-                        .allowedMethods("GET", "POST", "PUT", "DELETE")
-                        .allowedHeaders("http://localhost:4200")
-                        .allowCredentials(true);
+                        .allowedOrigins("*")
+//                        .allowedMethods(HttpMethod.GET.name(),
+//                                HttpMethod.POST.name(),
+//                                HttpMethod.DELETE.name())
+//                        .allowedHeaders(HttpHeaders.CONTENT_TYPE,
+//                                HttpHeaders.AUTHORIZATION)
+                ;
             }
         };
     }
+
 
 
     @Bean
