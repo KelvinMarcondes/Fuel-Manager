@@ -1,6 +1,6 @@
 package com.marcondes.FuelManager.entities;
 
-import com.marcondes.FuelManager.dto.login.LoginRequest;
+import com.marcondes.FuelManager.dto.login.LoginRequestDto;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,8 +29,8 @@ public class User {
     )
     private Set<Role> roles;
 
-    public boolean isLoginCorrect(LoginRequest loginRequest, PasswordEncoder passwordEncoder) {
-        return passwordEncoder.matches(loginRequest.password(), this.password);
+    public boolean isLoginCorrect(LoginRequestDto loginRequestDto, PasswordEncoder passwordEncoder) {
+        return passwordEncoder.matches(loginRequestDto.getPassword(), this.password);
     }
 
 

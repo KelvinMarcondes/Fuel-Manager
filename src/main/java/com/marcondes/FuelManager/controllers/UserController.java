@@ -1,14 +1,15 @@
 package com.marcondes.FuelManager.controllers;
 
-import com.marcondes.FuelManager.dto.user.CreateUserDto;
 import com.marcondes.FuelManager.dto.user.UserDto;
 import com.marcondes.FuelManager.entities.User;
 import com.marcondes.FuelManager.services.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/users")
@@ -18,18 +19,6 @@ public class UserController {
     private UserService userService;
 
     ModelMapper mapper = new ModelMapper();
-
-    @PostMapping("/new-user")
-    public ResponseEntity<String> createUser(@RequestBody CreateUserDto createUserDto) {
-
-         if (userService.findUserByEmail(createUserDto.getEmail()) != null){
-             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email já existente.");
-         }
-
-         User user = mapper.map(createUserDto, User.class);
-         userService.createUser(user);
-        return ResponseEntity.ok().body("Usuário criado com sucesso.");
-    }
 
     @GetMapping("/find-account")
     public ResponseEntity<UserDto> findByEmail(@RequestBody UserDto userDto){

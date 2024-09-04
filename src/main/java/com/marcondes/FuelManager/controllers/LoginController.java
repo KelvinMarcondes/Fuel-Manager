@@ -1,64 +1,59 @@
 package com.marcondes.FuelManager.controllers;
 
 
-import com.marcondes.FuelManager.dto.login.LoginRequest;
-import com.marcondes.FuelManager.dto.login.LoginResponse;
-import com.marcondes.FuelManager.entities.Role;
-import com.marcondes.FuelManager.repositories.UserRepository;
+import com.marcondes.FuelManager.dto.login.LoginRequestDto;
+import com.marcondes.FuelManager.dto.login.LoginResponseDto;
+import com.marcondes.FuelManager.dto.user.CreateUserDto;
+import com.marcondes.FuelManager.entities.User;
+import com.marcondes.FuelManager.services.UserService;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.Instant;
-import java.util.stream.Collectors;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class LoginController {
 
-    private final JwtEncoder jwtEncoder;
 
-    private final UserRepository userRepository;
+    @Autowired
+    private UserService userService;
 
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public LoginController(
-            JwtEncoder jwtEncoder,
-            UserRepository userRepository,
-            BCryptPasswordEncoder bCryptPasswordEncoder) {
-        this.jwtEncoder = jwtEncoder;
-        this.userRepository = userRepository;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-    }
+    ModelMapper mapper = new ModelMapper();
 
     @PostMapping("/login")
-    private ResponseEntity<LoginResponse> login (@RequestBody LoginRequest loginRequest) {
+    private ResponseEntity<LoginResponseDto> login (@RequestBody LoginRequestDto loginRequestDto) {
 
-        var user = userRepository.findUserByEmail(loginRequest.email());
+        return ResponseEntity.ok(userService.login(loginRequestDto));
+    }
 
-        if (user == null || !user.isLoginCorrect(loginRequest, bCryptPasswordEncoder)){
-            throw new BadCredentialsException("E-mail or password is incorrect");
+
+    @PostMapping("/cadastro")
+    public ResponseEntity<?> createUser(@RequestBody CreateUserDto createUserDto) {
+
+        if (userService.findUserByEmail(createUserDto.getEmail()) != null){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email já existente.");
         }
 
-        var now = Instant.now();
-        var expiresIn = 18000L;
+        User user = mapper.map(createUserDto, User.class);
 
-        var scopes = user.getRoles().stream().map(Role::getName).collect(Collectors.joining(" "));
+        try {
+            userService.createUser(user);
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
 
-        var clains = JwtClaimsSet.builder()
-                .issuer("mybackend")
-                .subject(user.getId().toString())
-                .issuedAt(now)
-                .expiresAt(now.plusSeconds(expiresIn))
-                .claim("scope", scopes)
-                .build();
+        LoginRequestDto loginRequestDto = new LoginRequestDto();
+        loginRequestDto.setEmail(createUserDto.getEmail());
+        loginRequestDto.setPassword(createUserDto.getPassword());
 
-        String jwtValue = jwtEncoder.encode(JwtEncoderParameters.from(clains)).getTokenValue();
+        LoginResponseDto loginResponseDto = userService.login(loginRequestDto);
 
-        return ResponseEntity.ok(new LoginResponse(jwtValue, expiresIn));
+        return ResponseEntity.status(HttpStatus.OK).body(loginResponseDto);
+
     }
 
 }
