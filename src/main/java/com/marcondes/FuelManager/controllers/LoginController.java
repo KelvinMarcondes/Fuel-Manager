@@ -5,6 +5,7 @@ import com.marcondes.FuelManager.dto.login.LoginRequestDto;
 import com.marcondes.FuelManager.dto.login.LoginResponseDto;
 import com.marcondes.FuelManager.dto.user.CreateUserDto;
 import com.marcondes.FuelManager.entities.User;
+import com.marcondes.FuelManager.exceptions.UserAlreadyExistsException;
 import com.marcondes.FuelManager.services.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +22,10 @@ public class LoginController {
     @Autowired
     private UserService userService;
 
-
     ModelMapper mapper = new ModelMapper();
 
     @PostMapping("/login")
     private ResponseEntity<LoginResponseDto> login (@RequestBody LoginRequestDto loginRequestDto) {
-
         return ResponseEntity.ok(userService.login(loginRequestDto));
     }
 
@@ -35,23 +34,11 @@ public class LoginController {
     public ResponseEntity<?> createUser(@RequestBody CreateUserDto createUserDto) {
 
         if (userService.findUserByEmail(createUserDto.getEmail()) != null){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email já existente.");
+            throw new UserAlreadyExistsException("E-mail já existente.");
         }
 
-        User user = mapper.map(createUserDto, User.class);
-
-        try {
-            userService.createUser(user);
-        }catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
-
-        LoginRequestDto loginRequestDto = new LoginRequestDto();
-        loginRequestDto.setEmail(createUserDto.getEmail());
-        loginRequestDto.setPassword(createUserDto.getPassword());
-
-        LoginResponseDto loginResponseDto = userService.login(loginRequestDto);
-
+        userService.createUser(mapper.map(createUserDto, User.class));
+        LoginResponseDto loginResponseDto = userService.login(mapper.map(createUserDto, LoginRequestDto.class));
         return ResponseEntity.status(HttpStatus.OK).body(loginResponseDto);
 
     }

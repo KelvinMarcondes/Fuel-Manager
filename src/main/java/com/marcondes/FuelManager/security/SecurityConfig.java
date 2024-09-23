@@ -83,7 +83,6 @@ public class SecurityConfig {
     }
 
 
-
     @Bean
     public JwtEncoder jwtEncoder(){
         JWK jwk = new RSAKey.Builder(this.rsaPublicKey).privateKey(this.rsaPrivateKey).build();

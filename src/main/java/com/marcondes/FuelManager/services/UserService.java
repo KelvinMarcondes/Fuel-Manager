@@ -4,10 +4,11 @@ import com.marcondes.FuelManager.dto.login.LoginRequestDto;
 import com.marcondes.FuelManager.dto.login.LoginResponseDto;
 import com.marcondes.FuelManager.entities.Role;
 import com.marcondes.FuelManager.entities.User;
+import com.marcondes.FuelManager.exceptions.LoginFailedException;
+import com.marcondes.FuelManager.exceptions.UserNotAlreadyExistsException;
 import com.marcondes.FuelManager.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -28,15 +29,17 @@ public class UserService {
     private UserRepository userRepository;
 
     public LoginResponseDto login(LoginRequestDto loginRequestDto) {
+
         var user = this.findUserByEmail(loginRequestDto.getEmail());
 
-        if (user == null || !user.isLoginCorrect(loginRequestDto, bCryptPasswordEncoder)){
-            throw new BadCredentialsException("E-mail or password is incorrect");
-        }
+        if (user == null)
+            throw new UserNotAlreadyExistsException("E-mail não cadastrado");
+
+        if (!user.isLoginCorrect(loginRequestDto, bCryptPasswordEncoder))
+            throw new LoginFailedException("E-mail ou senha incorreto");
 
         var now = Instant.now();
         var expiresIn = 18000L;
-
         var scopes = "";
 
         if (user.getRoles() != null) {
